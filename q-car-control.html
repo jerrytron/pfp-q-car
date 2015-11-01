@@ -1,0 +1,160 @@
+<!DOCTYPE HTML>
+<html>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<style>
+	table, tr {
+		border: 1px solid black;
+		border-collapse: collapse;
+		border-spacing: 5px;
+		padding: 10px;
+	}
+	td {
+		border-spacing: 5px;
+		padding: 10px;
+	}
+</style>
+<body>
+	<table>
+	<tr>
+	<td>
+		<b>Next Command</b>
+		<p>Action: <span style="color:blue" id="action"></span></p>
+		<p>Duration: <span style="color:green" id="duration"></span> seconds</p>
+		<p>Speed: <span  style="color:red" id="speed"></span></p>
+	</td>
+	<td>
+		<table>
+			<tr>
+				<td/>
+				<td><button id="forwardBtn" onclick="setAction('forward')">Forward</button></td>
+				<td/>
+			</tr>
+			<tr>
+				<td><button id="leftBtn" onclick="setAction('left')">Left</button></td>
+				<td><button id="reverseBtn" onclick="setAction('back')">Reverse</button></td>
+				<td><button id="rightBtn" onclick="setAction('right')">Right</button></td>
+			</tr>
+		</table>
+		<br/>
+		<button style="width:100%; color:red" id="stopBtn" onclick="setAction('stop');">STOP</button>
+	</td>
+	<td>
+		<p>Duration (0 - 20)
+		<br>0 = indefinitely<br><br>
+		<input type="range" name="duration" id="durationId" min="0" max="20" step="1" value="2" list="durationData" onchange="setDuration(this.value)">
+		<!-- This adds the tick marks to the range but does not in Safari -->
+		<datalist id="durationData">
+			<option value="0">
+			<option value="5">
+			<option value="10">
+			<option value="15">
+			<option value="20">
+		</datalist>
+
+		<p>Car Speed (0 - 100)<br><br>
+		<input type="range" name="speed" id="speedId" min="0" max="100" step="1" value="50" list="speedData" onchange="setSpeed(this.value)">
+		<!-- This adds the tick marks to the range but does not in Safari -->
+		<datalist id="speedData">
+			<option value="0">
+			<option value="20">
+			<option value="40">
+			<option value="60">
+			<option value="80">
+			<option value="100">
+		</datalist>
+	</td>
+	</tr>
+	<tr>
+	<td>
+		<div align="left"><button style="background-color:black;color:white" id="queueBtn" onclick="queueCommand(false)"><b>Queue Command</b></button></div>
+	</td>
+	<td>
+		<div align="middle"><button style="background-color:red;color:white" id="nowBtn" onclick="queueCommand(true)"><b>RUN NOW</b></button></div>
+	</td>
+	<td>
+		<div align="right"><button style="background-color:blue;color:white" id="clearBtn" onclick="clearQueue()"><b>Clear Queue</b></button></div>
+	</td>
+	</tr>
+	<tr>
+	<td colspan="3">
+		<text align="left">Device ID: </text><input align="right" style="width:70%" type="text" id="deviceId">
+	</td>
+	</tr>
+	<tr>
+	<td colspan="3">
+		<text >Access Token: </text><input align="right" style="width:70%" type="password" id="accessToken">
+	</td>
+	</tr>
+	</table>
+
+    <script type="text/javascript">
+		var deviceID    = "<< device id >>";
+		var accessToken = "<< access token >>";
+		var cmdFunc = "command";
+		var nextAction = "";
+		var nextDuration = "0";
+		var nextSpeed = "0";
+
+		// Default values;
+		setAction('forward');
+		setDuration('2');
+		setSpeed('50');
+
+		function setAction(aAction) {
+			nextAction = aAction;
+			document.getElementById("action").innerHTML = nextAction;
+		}
+
+		function setDuration(aDuration) {
+			nextDuration = aDuration;
+			if (nextDuration < 10) {
+				nextDuration = '0' + nextDuration;
+			}
+			document.getElementById("duration").innerHTML = nextDuration;
+		}
+
+		function setSpeed(aSpeed) {
+			nextSpeed = aSpeed;
+			if (nextSpeed < 10) {
+				nextSpeed = '0' + nextSpeed;
+			}
+			document.getElementById("speed").innerHTML = nextSpeed;
+		}
+
+		function queueCommand(aRunNow) {
+			var args = "";
+			if (aRunNow == true) {
+				args = "!";
+			}
+			args += nextAction + "-" + nextDuration + "-" + nextSpeed;
+
+			var callId = deviceID;
+			var callToken = accessToken;
+			if (document.getElementById("deviceId").value) {
+				callId = document.getElementById("deviceId").value;
+			}
+			if (document.getElementById("accessToken").value) {
+				callToken = document.getElementById("accessToken").value;
+			}
+
+			var requestURL = "https://api.particle.io/v1/devices/" + callId + "/" + cmdFunc + "/";
+				$.post( requestURL, { arg: args, access_token: callToken });
+		}
+
+		function clearQueue() {
+			var args = "*x";
+			var callId = deviceID;
+			var callToken = accessToken;
+			
+			if (document.getElementById("deviceId").value) {
+				callId = document.getElementById("deviceId").value;
+			}
+			if (document.getElementById("accessToken").value) {
+				callToken = document.getElementById("accessToken").value;
+			}
+
+			var requestURL = "https://api.particle.io/v1/devices/" + callId + "/" + cmdFunc + "/";
+				$.post( requestURL, { arg: args, access_token: callToken });
+		}
+	</script>
+</body>
